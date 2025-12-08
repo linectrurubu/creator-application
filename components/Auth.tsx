@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { UserRole, UserStatus } from '../types';
-import { signIn, signUp, resetPassword, seedDatabase } from '../services';
-import { CheckCircle, AlertCircle, Loader2, Building2, User as UserIcon, ArrowLeft, Mail, LogIn, Database } from 'lucide-react';
+import { signIn, signUp, resetPassword } from '../services';
+import { CheckCircle, AlertCircle, Loader2, Building2, User as UserIcon, ArrowLeft, Mail, LogIn } from 'lucide-react';
 
 interface AuthProps {
   onLogin: (email: string, role: UserRole) => void;
@@ -45,9 +45,6 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onRegister }) => {
   // Reset Password State
   const [resetEmail, setResetEmail] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
-
-  // Database Seed State
-  const [isSeeding, setIsSeeding] = useState(false);
 
   const mapAuthError = (err: any) => {
       const code = err.code || '';
@@ -162,24 +159,6 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onRegister }) => {
     }
   };
 
-  const handleSeedDatabase = async () => {
-    if (!window.confirm('【重要】データベースにデモデータを投入しますか？\n\n・この操作は新規Firebaseプロジェクトへの初期データ投入用です。\n・既存のデータがある場合、IDが重複するデータは上書きされます。\n・管理者アカウント(admin@pantheon.inc)も作成されます。')) {
-        return;
-    }
-    
-    setIsSeeding(true);
-    setError(null);
-    try {
-        await seedDatabase();
-        alert('デモデータの投入が完了しました。\n\n管理者アカウント:\nID: admin@pantheon.inc\nPW: password123\n\nでログインを試す前に、Firebase Authenticationでこのユーザーを作成するか、初回ログイン時に新規登録を行ってください。');
-    } catch (err: any) {
-        console.error(err);
-        setError('デモデータの投入に失敗しました: ' + err.message);
-    } finally {
-        setIsSeeding(false);
-    }
-  };
-
   const checkN8nUrl = () => {
     if (!regN8nUrl) return;
     setIsCheckingUrl(true);
@@ -266,18 +245,6 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onRegister }) => {
                   </button>
                 </div>
               </form>
-
-              {/* Dev Helper for Seed Data */}
-              <div className="pt-6 border-t border-gray-100 mt-6">
-                  <button 
-                    onClick={handleSeedDatabase}
-                    disabled={isSeeding}
-                    className="w-full flex items-center justify-center text-xs text-gray-500 hover:text-gray-700 py-2 border border-dashed border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    {isSeeding ? <Loader2 size={14} className="animate-spin mr-2"/> : <Database size={14} className="mr-2"/>}
-                    {isSeeding ? '初期化中...' : '開発用: データベース初期化 (デモデータ投入)'}
-                  </button>
-              </div>
             </div>
           )}
 
