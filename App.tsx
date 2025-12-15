@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, Project, Application, Invoice, Message, Notification,
   ViewState, UserRole, UserStatus, ApplicationStatus, ProjectStatus, InvoiceStatus, NotificationType 
@@ -32,6 +32,14 @@ const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('LOGIN');
   const [viewParams, setViewParams] = useState<any>(null); // Navigation parameters
   const [history, setHistory] = useState<HistoryItem[]>([]); // Navigation History
+
+  // Refs for auth listener (to avoid re-subscribing on state changes)
+  const viewRef = useRef<ViewState>(view);
+  const currentUserRef = useRef<User | null>(currentUser);
+
+  // Keep refs in sync with state
+  useEffect(() => { viewRef.current = view; }, [view]);
+  useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
   
   // Data State (Real DB)
   const [users, setUsers] = useState<User[]>([]);
@@ -110,10 +118,10 @@ const App: React.FC = () => {
                 }
 
                 // If we are on LOGIN/REGISTER, go to DASHBOARD
-                if (view === 'LOGIN' || view === 'REGISTER') {
+                if (viewRef.current === 'LOGIN' || viewRef.current === 'REGISTER') {
                         setView('DASHBOARD');
                         // Show Welcome Toast only once
-                        if (!currentUser) { // Simple check to avoid double toast on re-renders
+                        if (!currentUserRef.current) { // Simple check to avoid double toast on re-renders
                             showToast(NotificationType.INFO, `ようこそ`, 'ダッシュボードへログインしました。');
                         }
                 }
@@ -127,7 +135,7 @@ const App: React.FC = () => {
             }
         } else {
             // 共有テストアカウントの場合はログアウトしない
-            if (currentUser?.id === 'shared-admin') {
+            if (currentUserRef.current?.id === 'shared-admin') {
                 return;
             }
             setCurrentUser(null);
@@ -135,7 +143,7 @@ const App: React.FC = () => {
         }
     });
     return () => unsubscribe();
-  }, [view, currentUser]);
+  }, []); // 依存配列を空にして、一度だけリスナーを設定
 
   // Enforce Status Restrictions (Pending/Rejected Partners can only see Profile)
   useEffect(() => {
