@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserRole, UserStatus } from '../types';
 import { signIn, signUp, resetPassword } from '../services';
-import { CheckCircle, AlertCircle, Loader2, Building2, User as UserIcon, ArrowLeft, Mail, LogIn } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2, Building2, User as UserIcon, ArrowLeft, Mail, LogIn, Download } from 'lucide-react';
 
 interface AuthProps {
   onLogin: (email: string, role: UserRole) => void;
@@ -11,8 +11,25 @@ interface AuthProps {
 
 type AuthMode = 'LOGIN' | 'REGISTER' | 'FORGOT_PASSWORD';
 
+// URLからクエリパラメータを取得
+const getUrlParams = () => {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    mode: params.get('mode'),
+    name: params.get('name') || '',
+    email: params.get('email') || '',
+  };
+};
+
 export const Auth: React.FC<AuthProps> = ({ onLogin, onRegister }) => {
-  const [authMode, setAuthMode] = useState<AuthMode>('LOGIN');
+  // URLパラメータでmode=registerなら新規登録画面から開始
+  const urlParams = getUrlParams();
+  const [authMode, setAuthMode] = useState<AuthMode>(urlParams.mode === 'register' ? 'REGISTER' : 'LOGIN');
+
+  // クリエイターポータルからの引き継ぎ情報
+  const [creatorPortalData, setCreatorPortalData] = useState<{name: string; email: string} | null>(
+    urlParams.name || urlParams.email ? { name: urlParams.name, email: urlParams.email } : null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorAction, setErrorAction] = useState<(() => void) | null>(null);
@@ -176,6 +193,14 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onRegister }) => {
     }, 1000);
   };
 
+  // クリエイターポータルから情報を引き継ぐ
+  const importFromCreatorPortal = () => {
+    if (creatorPortalData) {
+      setRegName(creatorPortalData.name);
+      setRegEmail(creatorPortalData.email);
+    }
+  };
+
   const getTitle = () => {
     switch (authMode) {
       case 'LOGIN': return 'ログイン';
@@ -257,7 +282,27 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onRegister }) => {
 
           {authMode === 'REGISTER' && (
             <form onSubmit={handleRegisterSubmit} className="space-y-6">
-              
+
+              {/* クリエイターポータルからの引き継ぎボタン */}
+              {creatorPortalData && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <p className="text-sm text-blue-700 mb-3">
+                    クリエイターポータルからの情報があります。
+                  </p>
+                  <button
+                    type="button"
+                    onClick={importFromCreatorPortal}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  >
+                    <Download size={18} />
+                    クリエイターポータルから引き継ぐ
+                  </button>
+                  <p className="text-xs text-blue-600 mt-2 text-center">
+                    氏名・メールアドレスが自動入力されます
+                  </p>
+                </div>
+              )}
+
               {/* Basic Info */}
               <div className="space-y-4">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center border-b pb-2">
