@@ -28,7 +28,8 @@ export const AdminMessages: React.FC<AdminMessagesProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [chatTab, setChatTab] = useState<'CHAT' | 'FILES'>('CHAT');
 
-  const partners = allUsers.filter(u => u.role === 'PARTNER'); // Assuming UserRole.PARTNER string equivalent
+  // jobPortalEnabled が true のユーザー、または role が PARTNER のユーザーをパートナーとして扱う
+  const partners = allUsers.filter(u => u.jobPortalEnabled === true || u.role === 'PARTNER');
 
   const getUnreadCount = (senderId: string) => {
     return messages ? messages.filter(m => !m.projectId && m.senderId === senderId && m.receiverId === currentUser.id && !m.isRead).length : 0;

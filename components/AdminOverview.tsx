@@ -59,12 +59,14 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
 
   // KPI Calculations
   const totalRevenue = invoices.filter(i => i.status === InvoiceStatus.PAID).reduce((acc, curr) => acc + curr.amount, 0);
-  const activePartners = allUsers.filter(u => u.role === UserRole.PARTNER && u.status === UserStatus.ACTIVE).length;
-  const pendingPartners = allUsers.filter(u => u.status === UserStatus.PENDING).length;
+  // jobPortalEnabled が true のユーザー、または role が PARTNER のユーザーをパートナーとして扱う
+  const allPartners = allUsers.filter(u => u.jobPortalEnabled === true || u.role === UserRole.PARTNER);
+  const activePartners = allPartners.filter(u => u.status === UserStatus.ACTIVE).length;
+  const pendingPartners = allPartners.filter(u => u.status === UserStatus.PENDING).length;
   const activeProjects = projects.filter(p => p.status === ProjectStatus.IN_PROGRESS).length;
   const totalProjects = projects.length;
 
-  const partners = allUsers.filter(u => u.role === UserRole.PARTNER);
+  const partners = allPartners;
 
   // Admin Chart Data Generation
   const adminChartData = useMemo(() => {

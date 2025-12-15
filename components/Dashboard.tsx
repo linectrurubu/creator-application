@@ -71,7 +71,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, [initialSelectedChatUserId]);
 
   // Calculate specific metrics for admin tab badges
-  const partners = allUsers.filter(u => u.role === UserRole.PARTNER);
+  // jobPortalEnabled が true のユーザー、または role が PARTNER のユーザーをパートナーとして扱う
+  const partners = allUsers.filter(u => u.jobPortalEnabled === true || u.role === UserRole.PARTNER);
   // FIX: Only count pending PARTNERS (exclude Admin if status is pending)
   const pendingPartners = partners.filter(u => u.status === UserStatus.PENDING).length;
 
