@@ -1,16 +1,19 @@
-// クリエイターポータルと統一した命名規則
+// ユーザーロール
 export enum UserRole {
   GUEST = 'guest',
   CANDIDATE = 'candidate',
+  PARTNER = 'PARTNER',  // 案件ポータル用（パートナー）
   ADMIN = 'admin'
 }
 
-// クリエイターポータルと統一した命名規則
+// ユーザーステータス
 export enum UserStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
   CERTIFIED = 'certified',
-  INACTIVE = 'inactive'
+  INACTIVE = 'inactive',
+  ACTIVE = 'ACTIVE',    // 案件ポータル用（承認済み・アクティブ）
+  REJECTED = 'REJECTED' // 案件ポータル用（否認）
 }
 
 export enum ProjectCategory {
