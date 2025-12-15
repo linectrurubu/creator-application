@@ -182,9 +182,26 @@ const App: React.FC = () => {
   };
 
   // Auth Handlers
-  const handleLogin = (email: string, role: UserRole) => {
-    // Legacy handler: Auth is handled by onAuthStateChanged
-    console.log("Login requested for:", email);
+  const handleLogin = (userId: string, role: UserRole) => {
+    // 共有テストアカウント用のログイン処理
+    if (userId === 'shared-admin' && role === UserRole.ADMIN) {
+      const adminUser: User = {
+        id: 'shared-admin',
+        name: 'Pantheon Admin',
+        email: 'admin@pantheon.inc',
+        role: UserRole.ADMIN,
+        status: UserStatus.ACTIVE,
+        avatarUrl: 'https://ui-avatars.com/api/?name=Admin&background=1a1a2e&color=fff',
+        phoneNumber: '',
+        postalCode: '',
+        address: ''
+      };
+      setCurrentUser(adminUser);
+      setView('DASHBOARD');
+      showToast(NotificationType.INFO, 'ようこそ', '管理者としてログインしました。');
+      return;
+    }
+    console.log("Login requested for:", userId);
   };
 
   const handleRegister = (data: Partial<User>) => {
