@@ -9,13 +9,13 @@ import { getStorage } from 'firebase/storage';
 // Firebase設定 (ユーザー提供の有効な設定値)
 // ------------------------------------------------------------------
 const firebaseConfig = {
-  apiKey: "AIzaSyC6gdLBtE_jbS9-23P7NdLHQlf4rb9aRDA",
-  authDomain: "creator-application-cfbb8.firebaseapp.com",
-  projectId: "creator-application-cfbb8",
-  storageBucket: "creator-application-cfbb8.firebasestorage.app",
-  messagingSenderId: "780098994138",
-  appId: "1:780098994138:web:6865b6e7d4351c77848ae3",
-  measurementId: "G-NMME1D6WGM"
+  apiKey: "AIzaSyAfpFyNmZxIjzTbPMhk5WIGW0dOsQ40HLg",
+  authDomain: "creator-hub-test.firebaseapp.com",
+  projectId: "creator-hub-test",
+  storageBucket: "creator-hub-test.firebasestorage.app",
+  messagingSenderId: "976183984796",
+  appId: "1:976183984796:web:8b4ef66e7afc56df97e359",
+  measurementId: "G-3BH9XFY2J6"
 };
 
 // Firebaseアプリの初期化
