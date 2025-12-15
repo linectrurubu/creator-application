@@ -27,7 +27,8 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({
   const [sortBy, setSortBy] = useState<'NAME' | 'REVENUE' | 'ORDER_COUNT'>('REVENUE');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
 
-  const partners = users.filter(u => u.role === UserRole.PARTNER);
+  // jobPortalEnabled が true のユーザー、または role が PARTNER のユーザーをパートナーとして扱う
+  const partners = users.filter(u => u.jobPortalEnabled === true || u.role === UserRole.PARTNER);
   
   // 承認待ちのユーザー
   const pending = partners.filter(u => u.status === UserStatus.PENDING);
