@@ -240,8 +240,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onRegister }) => {
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
-                  <input 
-                    type="email" 
+                  <input
+                    type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pantheon-navy focus:border-transparent outline-none transition-all"
