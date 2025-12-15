@@ -73,22 +73,28 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Auth Listener
+  // Auth Listener - 初回チェック完了フラグ
+  const hasInitialAuthCheck = useRef(false);
+  const isIntentionalLogout = useRef(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        console.log("Auth state changed:", firebaseUser?.email || 'null', 'hasInitialCheck:', hasInitialAuthCheck.current);
+
         if (firebaseUser) {
-            // Fetch user details from Firestore by email (クリエイターポータルはaddDocで自動IDを使用しているため)
+            // Fetch user details from Firestore by email
             try {
                 const email = firebaseUser.email;
                 if (!email) {
-                    throw new Error("メールアドレスが取得できませんでした。");
+                    console.error("No email found for Firebase user");
+                    return; // Don't logout, just return
                 }
 
                 const q = query(collection(db, 'users'), where('email', '==', email));
                 let snapshot = await getDocs(q);
 
-                // Retry loop: Wait up to 4 seconds for the document to be created (by signUp service)
-                if (snapshot.empty) {
+                // Retry loop for new registrations
+                if (snapshot.empty && !hasInitialAuthCheck.current) {
                     for (let i = 0; i < 8; i++) {
                         await new Promise(resolve => setTimeout(resolve, 500));
                         snapshot = await getDocs(q);
@@ -100,9 +106,10 @@ const App: React.FC = () => {
                     const userDoc = snapshot.docs[0];
                     const userData = { id: userDoc.id, ...userDoc.data() } as User;
 
-                    // 案件ポータルへのアクセス権チェック
-                    if (!userData.jobPortalEnabled) {
+                    // 案件ポータルへのアクセス権チェック（初回のみ）
+                    if (!userData.jobPortalEnabled && !hasInitialAuthCheck.current) {
                         console.warn("User does not have jobPortalEnabled:", email);
+                        isIntentionalLogout.current = true;
                         auth.signOut();
                         setCurrentUser(null);
                         setView('LOGIN');
@@ -111,39 +118,65 @@ const App: React.FC = () => {
                     }
 
                     setCurrentUser(userData);
-                } else {
-                    // Critical Error: Profile not found after retries.
-                    console.error("User profile not found in Firestore for email:", email);
-                    throw new Error("ユーザープロファイルが見つかりません。");
-                }
+                    hasInitialAuthCheck.current = true;
 
-                // If we are on LOGIN/REGISTER, go to DASHBOARD
-                if (viewRef.current === 'LOGIN' || viewRef.current === 'REGISTER') {
+                    // If we are on LOGIN/REGISTER, go to DASHBOARD
+                    if (viewRef.current === 'LOGIN' || viewRef.current === 'REGISTER') {
                         setView('DASHBOARD');
-                        // Show Welcome Toast only once
-                        if (!currentUserRef.current) { // Simple check to avoid double toast on re-renders
+                        if (!currentUserRef.current) {
                             showToast(NotificationType.INFO, `ようこそ`, 'ダッシュボードへログインしました。');
                         }
+                    }
+                } else {
+                    // User not found in Firestore - only logout if this is initial check
+                    console.error("User profile not found in Firestore for email:", email);
+                    if (!hasInitialAuthCheck.current) {
+                        isIntentionalLogout.current = true;
+                        auth.signOut();
+                        setCurrentUser(null);
+                        setView('LOGIN');
+                        showToast(NotificationType.ERROR, 'エラー', 'ユーザー情報が見つかりません。クリエイターポータルで登録してください。');
+                    }
                 }
             } catch (e) {
                 console.error("Error fetching user data:", e);
-                // Force logout if critical error to prevent "stuck" state
-                auth.signOut();
-                setCurrentUser(null);
-                setView('LOGIN');
-                showToast(NotificationType.ERROR, 'ログインエラー', 'プロファイル情報の取得に失敗しました。再ログインしてください。');
+                // エラー時はログアウトしない（既存ユーザーの場合）
+                // 既にログイン済みの場合はそのまま維持
+                if (!currentUserRef.current) {
+                    // まだログインしていない場合のみログイン画面に戻す
+                    setView('LOGIN');
+                }
             }
         } else {
+            // firebaseUser is null
+            // 意図的なログアウトの場合のみログアウト処理
+            if (isIntentionalLogout.current) {
+                isIntentionalLogout.current = false;
+                setCurrentUser(null);
+                setView('LOGIN');
+                return;
+            }
+
             // 共有テストアカウントの場合はログアウトしない
             if (currentUserRef.current?.id === 'shared-admin') {
                 return;
             }
-            setCurrentUser(null);
-            setView('LOGIN');
+
+            // 既にユーザーがログイン済みの場合は、一時的なauth状態の変化として無視
+            if (currentUserRef.current && hasInitialAuthCheck.current) {
+                console.log("Ignoring transient auth state change - user already logged in");
+                return;
+            }
+
+            // 初回チェック時のみログイン画面を表示
+            if (!hasInitialAuthCheck.current) {
+                hasInitialAuthCheck.current = true;
+                setView('LOGIN');
+            }
         }
     });
     return () => unsubscribe();
-  }, []); // 依存配列を空にして、一度だけリスナーを設定
+  }, []);
 
   // Enforce Status Restrictions (Pending/Rejected Partners can only see Profile)
   useEffect(() => {
@@ -244,6 +277,8 @@ const App: React.FC = () => {
   };
 
   const handleLogout = () => {
+    isIntentionalLogout.current = true; // 意図的なログアウトをマーク
+    hasInitialAuthCheck.current = false; // 次回ログイン時に再チェック
     auth.signOut();
     setCurrentUser(null);
     setView('LOGIN');
