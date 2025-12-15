@@ -6,7 +6,7 @@ import { getStorage } from 'firebase/storage';
 // import { getAnalytics } from "firebase/analytics";
 
 // ------------------------------------------------------------------
-// Firebase設定 (ユーザー提供の有効な設定値)
+// Firebase設定 (クリエイターポータルと統合 - creator-hub-test)
 // ------------------------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyAfpFyNmZxIjzTbPMhk5WIGW0dOsQ40HLg",

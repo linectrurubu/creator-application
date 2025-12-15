@@ -1,14 +1,15 @@
 
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  setDoc, 
-  addDoc, 
-  updateDoc, 
-  onSnapshot, 
-  query, 
-  where 
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  updateDoc,
+  onSnapshot,
+  query,
+  where
 } from 'firebase/firestore';
 import { 
   createUserWithEmailAndPassword, 
@@ -19,7 +20,6 @@ import {
 } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { User, UserRole, UserStatus, Notification } from './types';
-import { MOCK_USERS, MOCK_PROJECTS, MOCK_APPLICATIONS, MOCK_INVOICES, MOCK_MESSAGES, MOCK_NOTIFICATIONS } from './constants';
 
 // --- Helper: Clean Data (Remove undefined) ---
 const cleanData = <T extends Record<string, any>>(data: T): T => {
@@ -59,17 +59,25 @@ export const signUp = async (email: string, password: string, userData: Partial<
 };
 
 export const signIn = async (email: string, password: string) => {
-  const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
-  const userDocRef = doc(db, 'users', user.uid);
-  const userDoc = await getDoc(userDocRef);
+  // Firebase認証でログイン
+  await signInWithEmailAndPassword(auth, email, password);
 
-  if (userDoc.exists()) {
-      return userDoc.data() as User;
+  // メールアドレスでユーザーを検索（クリエイターポータルはaddDocで自動IDを使用しているため）
+  const q = query(collection(db, 'users'), where('email', '==', email));
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    const userDoc = snapshot.docs[0];
+    const userData = { id: userDoc.id, ...userDoc.data() } as User;
+
+    // 案件ポータルへのアクセス権チェック
+    if (!userData.jobPortalEnabled) {
+      throw new Error("案件ポータルへのアクセス権がありません。クリエイターポータルで認定を完了してください。");
+    }
+
+    return userData;
   } else {
-      // In production, we do NOT auto-create an empty profile if one is missing,
-      // as it would lack required fields like Role or Partner Status.
-      throw new Error("User profile not found.");
+    throw new Error("ユーザーが見つかりません。先にクリエイターポータルで登録してください。");
   }
 };
 
@@ -138,36 +146,5 @@ export const updateDocument = async (collectionName: string, docId: string, data
   await updateDoc(docRef, cleanedData);
 };
 
-// --- Seed Data (Initialize DB) ---
-export const seedDatabase = async () => {
-    console.log("Seeding database...");
-    const batchPromises = [];
-
-    // Users
-    for (const u of MOCK_USERS) {
-        batchPromises.push(setDoc(doc(db, 'users', u.id), cleanData(u)));
-    }
-    // Projects
-    for (const p of MOCK_PROJECTS) {
-        batchPromises.push(setDoc(doc(db, 'projects', p.id), cleanData(p)));
-    }
-    // Applications
-    for (const a of MOCK_APPLICATIONS) {
-        batchPromises.push(setDoc(doc(db, 'applications', a.id), cleanData(a)));
-    }
-    // Invoices
-    for (const i of MOCK_INVOICES) {
-        batchPromises.push(setDoc(doc(db, 'invoices', i.id), cleanData(i)));
-    }
-    // Messages
-    for (const m of MOCK_MESSAGES) {
-        batchPromises.push(setDoc(doc(db, 'messages', m.id), cleanData(m)));
-    }
-    // Notifications
-    for (const n of MOCK_NOTIFICATIONS) {
-        batchPromises.push(setDoc(doc(db, 'notifications', n.id), cleanData(n)));
-    }
-
-    await Promise.all(batchPromises);
-    console.log("Database seeded successfully!");
-};
+// --- Seed Data (Disabled - 統合後はクリエイターポータルでユーザー管理) ---
+// export const seedDatabase = async () => { ... }
