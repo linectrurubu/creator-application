@@ -717,11 +717,18 @@ const App: React.FC = () => {
                   onBack={handleBack}
                />;
       case 'ADMIN_PARTNERS':
-        return <AdminPartners 
+        return <AdminPartners
                   users={users}
+                  invoices={invoices}
+                  projects={projects}
                   onApprove={handleApprovePartner}
                   onReject={handleRejectPartner}
                   onUpdateStatus={handleUpdateUserStatus}
+                  onViewProfile={handleViewProfile}
+                  onStartChat={(userId) => {
+                    // 管理者用のダッシュボードMESSAGESタブにナビゲート
+                    handleChangeView('DASHBOARD', { tab: 'MESSAGES', selectedChatUserId: userId });
+                  }}
                />;
       default:
         return <Dashboard 
