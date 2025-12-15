@@ -17,7 +17,7 @@ import { ToastProps } from './components/Toast';
 import { createDocument, updateDocument, subscribeToCollection, subscribeToNotifications } from './services';
 import { auth, db, storage } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface HistoryItem {
@@ -69,28 +69,43 @@ const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
         if (firebaseUser) {
-            // Fetch user details from Firestore with retry logic to handle registration race condition
+            // Fetch user details from Firestore by email (クリエイターポータルはaddDocで自動IDを使用しているため)
             try {
-                const userDocRef = doc(db, 'users', firebaseUser.uid);
-                let userDoc = await getDoc(userDocRef);
-                
+                const email = firebaseUser.email;
+                if (!email) {
+                    throw new Error("メールアドレスが取得できませんでした。");
+                }
+
+                const q = query(collection(db, 'users'), where('email', '==', email));
+                let snapshot = await getDocs(q);
+
                 // Retry loop: Wait up to 4 seconds for the document to be created (by signUp service)
-                if (!userDoc.exists()) {
+                if (snapshot.empty) {
                     for (let i = 0; i < 8; i++) {
                         await new Promise(resolve => setTimeout(resolve, 500));
-                        userDoc = await getDoc(userDocRef);
-                        if (userDoc.exists()) break;
+                        snapshot = await getDocs(q);
+                        if (!snapshot.empty) break;
                     }
                 }
-                
-                if (userDoc.exists()) {
-                    const userData = userDoc.data() as User;
+
+                if (!snapshot.empty) {
+                    const userDoc = snapshot.docs[0];
+                    const userData = { id: userDoc.id, ...userDoc.data() } as User;
+
+                    // 案件ポータルへのアクセス権チェック
+                    if (!userData.jobPortalEnabled) {
+                        console.warn("User does not have jobPortalEnabled:", email);
+                        auth.signOut();
+                        setCurrentUser(null);
+                        setView('LOGIN');
+                        showToast(NotificationType.ERROR, 'アクセス権限なし', '案件ポータルへのアクセス権がありません。クリエイターポータルで認定を完了してください。');
+                        return;
+                    }
+
                     setCurrentUser(userData);
                 } else {
                     // Critical Error: Profile not found after retries.
-                    // We DO NOT attempt to create a fallback profile here because it would lack 
-                    // required fields (like role, n8nUrl) and cause permission errors in production.
-                    console.error("User profile not found in Firestore for UID:", firebaseUser.uid);
+                    console.error("User profile not found in Firestore for email:", email);
                     throw new Error("ユーザープロファイルが見つかりません。");
                 }
 
@@ -111,12 +126,16 @@ const App: React.FC = () => {
                 showToast(NotificationType.ERROR, 'ログインエラー', 'プロファイル情報の取得に失敗しました。再ログインしてください。');
             }
         } else {
+            // 共有テストアカウントの場合はログアウトしない
+            if (currentUser?.id === 'shared-admin') {
+                return;
+            }
             setCurrentUser(null);
             setView('LOGIN');
         }
     });
     return () => unsubscribe();
-  }, [view]);
+  }, [view, currentUser]);
 
   // Enforce Status Restrictions (Pending/Rejected Partners can only see Profile)
   useEffect(() => {
@@ -192,6 +211,21 @@ const App: React.FC = () => {
 
   // Auth Handlers
   const handleLogin = (email: string, role: UserRole) => {
+    // 共有テストアカウントの処理
+    if (email === 'shared-admin') {
+      const sharedUser: User = {
+        id: 'shared-admin',
+        email: 'admin@pantheon.com',
+        name: '共有テストアカウント',
+        role: UserRole.ADMIN,
+        status: UserStatus.APPROVED,
+        jobPortalEnabled: true,
+      };
+      setCurrentUser(sharedUser);
+      setView('DASHBOARD');
+      showToast(NotificationType.INFO, 'ようこそ', '共有テストアカウントでログインしました。');
+      return;
+    }
     // Legacy handler: Auth is handled by onAuthStateChanged
     console.log("Login requested for:", email);
   };

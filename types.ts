@@ -1,13 +1,16 @@
-
+// クリエイターポータルと統一した命名規則
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  PARTNER = 'PARTNER'
+  GUEST = 'guest',
+  CANDIDATE = 'candidate',
+  ADMIN = 'admin'
 }
 
+// クリエイターポータルと統一した命名規則
 export enum UserStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  REJECTED = 'REJECTED'
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  CERTIFIED = 'certified',
+  INACTIVE = 'inactive'
 }
 
 export enum ProjectCategory {
@@ -62,24 +65,32 @@ export interface Notification {
 }
 
 export interface User {
+  // === クリエイターポータルからの共通フィールド ===
   id: string;
   name: string;
   email: string;
   role: UserRole;
   status: UserStatus;
+  avatarUrl?: string;
+  createdAt?: string;
+  lastLoginAt?: string;
+  planType?: string;
+  jobPortalEnabled?: boolean; // 案件ポータルへのアクセス権
+
+  // === 案件ポータル専用フィールド (初回アクセス時に追加登録) ===
   n8nProfileUrl?: string;
   invoiceNumber?: string;
-  bankAccountInfo?: string; // Mocked encrypted string
+  bankAccountInfo?: string; // 暗号化された銀行口座情報
   experienceTags?: string[];
   selfIntroduction?: string;
-  avatarUrl?: string;
-  // New Profile Fields
   availableCategories?: ProjectCategory[];
   portfolioUrl?: string;
-  // New Mandatory Fields
   phoneNumber?: string;
   postalCode?: string;
   address?: string;
+
+  // === 案件ポータル内部ステータス ===
+  jobPortalStatus?: 'pending' | 'active' | 'rejected'; // 案件ポータルでの承認状態
 }
 
 export interface Project {

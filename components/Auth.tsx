@@ -87,6 +87,13 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onRegister }) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // 共有テストアカウント: admin / pantheon
+    if (email === 'admin' && password === 'pantheon') {
+      onLogin('shared-admin', UserRole.ADMIN);
+      return;
+    }
+
     try {
         await signIn(email, password);
         // App.tsx onAuthStateChanged will handle the rest
