@@ -105,9 +105,12 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onRegister }) => {
     setLoading(true);
     setError(null);
 
-    // 共有テストアカウント: admin / pantheon
-    if (email === 'admin' && password === 'pantheon') {
+    // 運営事務局（Pantheon Admin）ログイン: admin / pantheon
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+    if (trimmedEmail === 'admin' && trimmedPassword === 'pantheon') {
       onLogin('shared-admin', UserRole.ADMIN);
+      setLoading(false);
       return;
     }
 
