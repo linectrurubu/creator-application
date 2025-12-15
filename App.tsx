@@ -157,8 +157,8 @@ const App: React.FC = () => {
                 return;
             }
 
-            // 共有テストアカウントの場合はログアウトしない
-            if (currentUserRef.current?.id === 'shared-admin') {
+            // 運営事務局（Pantheon Admin）の場合はログアウトしない
+            if (currentUserRef.current?.id === 'WRIu0Aenv3H9FE092W53') {
                 return;
             }
 
@@ -252,19 +252,20 @@ const App: React.FC = () => {
 
   // Auth Handlers
   const handleLogin = (email: string, role: UserRole) => {
-    // 共有テストアカウントの処理
+    // 運営事務局（Pantheon Admin）ログイン処理
     if (email === 'shared-admin') {
-      const sharedUser: User = {
-        id: 'shared-admin',
-        email: 'admin@pantheon.com',
-        name: '共有テストアカウント',
+      const adminUser: User = {
+        id: 'WRIu0Aenv3H9FE092W53', // FirestoreドキュメントIDと一致
+        email: 'admin@pantheon.inc',
+        name: 'Pantheon Admin',
         role: UserRole.ADMIN,
-        status: UserStatus.APPROVED,
+        status: UserStatus.ACTIVE,
         jobPortalEnabled: true,
+        avatarUrl: 'https://ui-avatars.com/api/?name=Admin&background=1a1a2e&color=fff',
       };
-      setCurrentUser(sharedUser);
+      setCurrentUser(adminUser);
       setView('DASHBOARD');
-      showToast(NotificationType.INFO, 'ようこそ', '共有テストアカウントでログインしました。');
+      showToast(NotificationType.INFO, 'ようこそ', '運営事務局としてログインしました。');
       return;
     }
     // Legacy handler: Auth is handled by onAuthStateChanged
