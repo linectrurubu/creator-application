@@ -185,8 +185,9 @@ const App: React.FC = () => {
   const handleLogin = (userId: string, role: UserRole) => {
     // 共有テストアカウント用のログイン処理
     if (userId === 'shared-admin' && role === UserRole.ADMIN) {
+      // FirestoreのドキュメントIDと一致させる
       const adminUser: User = {
-        id: 'shared-admin',
+        id: 'WRIu0Aenv3H9FE092W53',
         name: 'Pantheon Admin',
         email: 'admin@pantheon.inc',
         role: UserRole.ADMIN,

@@ -24,7 +24,8 @@ export const DirectMessages: React.FC<DirectMessagesProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Find Admin to chat with (In a real app, maybe list multiple admins)
-  const adminUser = users.find(u => u.role === 'ADMIN');
+  // UserRole.ADMIN = 'admin' (lowercase)
+  const adminUser = users.find(u => u.role === 'admin' || u.role === 'ADMIN');
   
   // Filter messages between current user and admin (DM only, no project messages)
   const dms = messages.filter(m => 
