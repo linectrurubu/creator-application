@@ -12,8 +12,8 @@ interface ProjectsProps {
   onApply: (projectId: string, message: string, quote: number) => void;
   onHire: (projectId: string, applicationId: string, userId: string) => void;
   onCreateProject: (project: Partial<Project>) => void;
-  onUpdateProject?: (projectId: string, data: Partial<Project>) => void;
-  onDeleteProject?: (projectId: string) => void;
+  onUpdateProject?: (projectId: string, data: Partial<Project>) => void | Promise<void>;
+  onDeleteProject?: (projectId: string) => void | Promise<void>;
   messages: Message[];
   onSendMessage: (projectId: string, content: string, file?: File) => void;
   onMarkProjectAsRead?: (projectId: string) => void; // New prop
@@ -349,11 +349,21 @@ export const Projects: React.FC<ProjectsProps> = ({
     setEditingProject(null);
   };
 
-  const handleDeleteConfirm = () => {
-    if (!deletingProjectId || !onDeleteProject) return;
-    onDeleteProject(deletingProjectId);
-    setShowDeleteConfirm(false);
-    setDeletingProjectId(null);
+  const handleDeleteConfirm = async () => {
+    if (!deletingProjectId || !onDeleteProject) {
+      console.error('Delete failed: missing projectId or handler');
+      return;
+    }
+    setIsProcessingAction(true);
+    try {
+      await onDeleteProject(deletingProjectId);
+      setShowDeleteConfirm(false);
+      setDeletingProjectId(null);
+    } catch (error) {
+      console.error('Error deleting project:', error);
+    } finally {
+      setIsProcessingAction(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1314,15 +1324,25 @@ export const Projects: React.FC<ProjectsProps> = ({
             <div className="p-4 bg-slate-900 border-t border-slate-700 flex justify-end space-x-3">
               <button
                 onClick={() => { setShowDeleteConfirm(false); setDeletingProjectId(null); }}
-                className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                disabled={isProcessingAction}
+                className="px-4 py-2 text-slate-400 hover:text-white transition-colors disabled:opacity-50"
               >
                 キャンセル
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold shadow-lg transition-all flex items-center"
+                disabled={isProcessingAction}
+                className={`px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold shadow-lg transition-all flex items-center ${isProcessingAction ? 'opacity-75 cursor-wait' : ''}`}
               >
-                <Trash2 size={18} className="mr-2" /> 削除する
+                {isProcessingAction ? (
+                  <>
+                    <Loader2 size={18} className="mr-2 animate-spin" /> 削除中...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={18} className="mr-2" /> 削除する
+                  </>
+                )}
               </button>
             </div>
           </div>
