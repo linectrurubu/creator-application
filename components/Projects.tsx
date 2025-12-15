@@ -582,7 +582,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                                 }
                               }}
                             >
-                              <img src={applicant.avatarUrl} className={`w-10 h-10 rounded-full transition-all ${isPinned ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-700' : 'group-hover:ring-2 ring-slate-500'}`} alt="" />
+                              <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white transition-all ${isPinned ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-slate-700' : 'group-hover:ring-2 ring-slate-500'}`}><UserIcon size={20} /></div>
                               <div>
                                 <p className="font-bold text-white group-hover:text-blue-400 transition-colors flex items-center gap-1">
                                   {applicant.name} <Info size={12} className="opacity-50" />
@@ -609,7 +609,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                                        </button>
                                    )}
                                    <div className="flex items-center gap-3 mb-3 border-b border-slate-700 pb-2 mr-6">
-                                      <img src={applicant.avatarUrl} className="w-12 h-12 rounded-full border border-slate-600" alt="" />
+                                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white border border-slate-600"><UserIcon size={24} /></div>
                                       <div>
                                          <p className="font-bold text-white text-base leading-tight">{applicant.name}</p>
                                          <p className="text-xs text-slate-400">{applicant.email}</p>
@@ -891,7 +891,7 @@ export const Projects: React.FC<ProjectsProps> = ({
                      <div className="p-6 space-y-6">
                          <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50">
                              <div className="flex items-center space-x-4 mb-4">
-                                 <img src={applicant.avatarUrl} className="w-12 h-12 rounded-full border border-slate-600" alt="" />
+                                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white border border-slate-600"><UserIcon size={24} /></div>
                                  <div>
                                      <p className="font-bold text-lg text-white">{applicant.name}</p>
                                      <p className="text-sm text-slate-400">{applicant.email}</p>

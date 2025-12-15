@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { User, UserRole, UserStatus, Invoice, InvoiceStatus, Project } from '../types';
-import { CheckCircle, XCircle, ExternalLink, Shield, Users, Search, AlertTriangle, ArrowUpDown, Star, MessageCircle, Briefcase } from 'lucide-react';
+import { CheckCircle, XCircle, ExternalLink, Shield, Users, Search, AlertTriangle, ArrowUpDown, Star, MessageCircle, Briefcase, User as UserIcon } from 'lucide-react';
 
 interface AdminPartnersProps {
   users: User[];
@@ -88,7 +88,9 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({
               <div key={user.id} className="bg-slate-800 border-l-4 border-n8n-orange rounded-r-xl border border-slate-700 shadow-lg p-6 relative group">
                  <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3 cursor-pointer" onClick={() => onViewProfile && onViewProfile(user.id)}>
-                        <img src={user.avatarUrl} className="w-12 h-12 rounded-full bg-slate-700 object-cover border border-slate-600" alt="" />
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                          <UserIcon size={24} />
+                        </div>
                         <div>
                             <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors">{user.name}</h3>
                             <p className="text-xs text-slate-400">{user.email}</p>
@@ -184,7 +186,9 @@ export const AdminPartners: React.FC<AdminPartnersProps> = ({
                             <tr key={user.id} className={`${user.status === UserStatus.REJECTED ? 'opacity-60 bg-red-900/5' : 'hover:bg-slate-700/50'} transition-colors group`}>
                                 <td className="p-4 font-medium text-white">
                                     <div className="flex items-center space-x-3 cursor-pointer" onClick={() => onViewProfile && onViewProfile(user.id)}>
-                                        <img src={user.avatarUrl} className="w-8 h-8 rounded-full object-cover border border-slate-600" alt=""/>
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                                          <UserIcon size={16} />
+                                        </div>
                                         <div>
                                             <p className="group-hover:text-blue-400 transition-colors">{user.name}</p>
                                             <p className="text-xs text-slate-400">{user.email}</p>

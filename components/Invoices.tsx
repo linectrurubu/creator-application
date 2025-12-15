@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Invoice, InvoiceStatus, User, Project, UserRole, ProjectStatus } from '../types';
-import { FileText, Download, AlertCircle, Printer, ChevronDown, ArrowUpDown, Building2, Search, Filter, X, Loader2 } from 'lucide-react';
+import { FileText, Download, AlertCircle, Printer, ChevronDown, ArrowUpDown, Building2, Search, Filter, X, Loader2, User as UserIcon } from 'lucide-react';
 
 interface InvoicesProps {
   currentUser: User;
@@ -426,7 +426,9 @@ export const Invoices: React.FC<InvoicesProps> = ({ currentUser, invoices, proje
                 </div>
                 <div className="p-6">
                     <div className="flex items-center gap-3 mb-6 bg-slate-900/50 p-3 rounded-lg border border-slate-700">
-                        <img src={viewBankInfoUser.avatarUrl} className="w-10 h-10 rounded-full border border-slate-600" alt="" />
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                          <UserIcon size={20} />
+                        </div>
                         <div>
                             <p className="font-bold text-white">{viewBankInfoUser.name}</p>
                             <p className="text-xs text-slate-400">{viewBankInfoUser.email}</p>

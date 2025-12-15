@@ -144,11 +144,9 @@ export const Layout: React.FC<LayoutProps> = ({
 
             <div className={`p-4 border-t shrink-0 ${theme.userSection}`}>
               <div className="flex items-center space-x-3 mb-4 px-2">
-                <img 
-                  src={currentUser.avatarUrl || `https://ui-avatars.com/api/?name=${currentUser.name}`} 
-                  alt="Avatar" 
-                  className="w-10 h-10 rounded-full border border-gray-200 object-cover"
-                />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                  <UserIcon size={20} />
+                </div>
                 <div className="overflow-hidden">
                   <p className="text-sm font-semibold truncate">{currentUser.name}</p>
                   <p className="text-xs text-gray-500">
@@ -271,11 +269,9 @@ export const Layout: React.FC<LayoutProps> = ({
             {isAdmin && (
               <div className="flex items-center space-x-4 pl-4 border-l border-slate-700">
                    <div className="flex items-center space-x-3">
-                      <img 
-                        src={currentUser.avatarUrl || `https://ui-avatars.com/api/?name=${currentUser.name}`} 
-                        alt="Avatar" 
-                        className="w-8 h-8 rounded-full border border-slate-600 object-cover ring-2 ring-slate-800"
-                      />
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white ring-2 ring-slate-800">
+                        <UserIcon size={16} />
+                      </div>
                       <div className="hidden md:block text-right">
                         <p className="text-sm font-bold text-slate-200 leading-none">{currentUser.name}</p>
                         <p className="text-xs text-slate-500 uppercase tracking-wider mt-1">Administrator</p>

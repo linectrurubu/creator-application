@@ -148,11 +148,9 @@ export const Profile: React.FC<ProfileProps> = ({ targetUser, currentUser, proje
               &larr; 戻る
             </button>
           )}
-          <img 
-            src={targetUser.avatarUrl} 
-            alt={targetUser.name} 
-            className="w-20 h-20 rounded-full border-4 border-slate-200 object-cover"
-          />
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white border-4 border-slate-200">
+            <UserIcon size={40} />
+          </div>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               {targetUser.name}

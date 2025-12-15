@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { User, Message, UserStatus } from '../types';
-import { Search, MessageCircle, FileText, Download, X, Paperclip, Send } from 'lucide-react';
+import { Search, MessageCircle, FileText, Download, X, Paperclip, Send, User as UserIcon } from 'lucide-react';
 
 interface AdminMessagesProps {
   currentUser: User;
@@ -96,7 +96,9 @@ export const AdminMessages: React.FC<AdminMessagesProps> = ({
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center space-x-3">
                                     <div className="relative">
-                                        <img src={user.avatarUrl} className="w-10 h-10 rounded-full bg-slate-600 object-cover" alt="" />
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                                          <UserIcon size={20} />
+                                        </div>
                                         {user.status === UserStatus.ACTIVE && <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-slate-800"></div>}
                                     </div>
                                     <div>
@@ -122,7 +124,9 @@ export const AdminMessages: React.FC<AdminMessagesProps> = ({
                   {/* Chat Header */}
                   <div className="p-4 border-b border-slate-700 bg-slate-900 flex justify-between items-center shadow-md z-10">
                       <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => onViewProfile && onViewProfile(selectedChatUser.id, { tab: 'MESSAGES', selectedChatUserId })}>
-                          <img src={selectedChatUser.avatarUrl} className="w-10 h-10 rounded-full bg-slate-600 object-cover" alt="" />
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                            <UserIcon size={20} />
+                          </div>
                           <div>
                               <h3 className="font-bold text-white flex items-center gap-2">
                                   {selectedChatUser.name}

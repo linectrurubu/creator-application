@@ -4,8 +4,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell, PieChart, Pie,
   ComposedChart, Line, Legend
 } from 'recharts';
-import { 
-  DollarSign, Users, Briefcase, TrendingUp, ArrowUpRight, BarChart2, Layers, Trophy, Medal
+import {
+  DollarSign, Users, Briefcase, TrendingUp, ArrowUpRight, BarChart2, Layers, Trophy, Medal, User as UserIcon
 } from 'lucide-react';
 
 interface AdminOverviewProps {
@@ -351,7 +351,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
                               <div className="flex items-center gap-4">
                                   <div className={`w-6 flex justify-center font-bold ${rankStyle.color}`}>{RankIcon ? <RankIcon size={20} /> : <span className="text-sm">#{index + 1}</span>}</div>
                                   <div className="flex items-center gap-3 cursor-pointer" onClick={() => onViewProfile && onViewProfile(user.id, { tab: 'OVERVIEW' })}>
-                                      <img src={user.avatarUrl} className="w-10 h-10 rounded-full border border-slate-600 object-cover" alt="" />
+                                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white border border-slate-600"><UserIcon size={20} /></div>
                                       <div><p className="font-bold text-white text-sm">{user.name}</p><p className="text-[10px] text-slate-400">{user.email}</p></div>
                                   </div>
                               </div>
@@ -376,7 +376,7 @@ export const AdminOverview: React.FC<AdminOverviewProps> = ({
                               <div className="flex items-center gap-4">
                                   <div className={`w-6 flex justify-center font-bold ${rankStyle.color}`}>{RankIcon ? <RankIcon size={20} /> : <span className="text-sm">#{index + 1}</span>}</div>
                                   <div className="flex items-center gap-3 cursor-pointer" onClick={() => onViewProfile && onViewProfile(user.id, { tab: 'OVERVIEW' })}>
-                                      <img src={user.avatarUrl} className="w-10 h-10 rounded-full border border-slate-600 object-cover" alt="" />
+                                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white border border-slate-600"><UserIcon size={20} /></div>
                                       <div><p className="font-bold text-white text-sm">{user.name}</p><p className="text-[10px] text-slate-400">{user.email}</p></div>
                                   </div>
                               </div>
