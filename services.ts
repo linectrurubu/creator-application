@@ -7,6 +7,7 @@ import {
   setDoc,
   addDoc,
   updateDoc,
+  deleteDoc,
   onSnapshot,
   query,
   where
@@ -144,6 +145,11 @@ export const updateDocument = async (collectionName: string, docId: string, data
   const cleanedData = cleanData(data);
   const docRef = doc(db, collectionName, docId);
   await updateDoc(docRef, cleanedData);
+};
+
+export const deleteDocument = async (collectionName: string, docId: string) => {
+  const docRef = doc(db, collectionName, docId);
+  await deleteDoc(docRef);
 };
 
 // --- Seed Data (Disabled - 統合後はクリエイターポータルでユーザー管理) ---

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Project, User, ProjectStatus, ProjectCategory, Message, UserRole, Application, ApplicationStatus } from '../types';
 import { EXPERIENCE_TAGS } from '../constants';
-import { Search, Filter, Briefcase, ChevronRight, MessageSquare, Paperclip, Send, Calendar, DollarSign, Tag, Plus, X, UserCheck, Trash2, Star, CheckCircle, ListFilter, LayoutList, LayoutGrid, CheckSquare, Trophy, XCircle, Info, ExternalLink, Loader2, AlertTriangle, User as UserIcon, FileText, Download, File as FileIcon, HelpCircle } from 'lucide-react';
+import { Search, Filter, Briefcase, ChevronRight, MessageSquare, Paperclip, Send, Calendar, DollarSign, Tag, Plus, X, UserCheck, Trash2, Star, CheckCircle, ListFilter, LayoutList, LayoutGrid, CheckSquare, Trophy, XCircle, Info, ExternalLink, Loader2, AlertTriangle, User as UserIcon, FileText, Download, File as FileIcon, HelpCircle, Edit2 } from 'lucide-react';
 
 interface ProjectsProps {
   currentUser: User;
@@ -12,10 +12,12 @@ interface ProjectsProps {
   onApply: (projectId: string, message: string, quote: number) => void;
   onHire: (projectId: string, applicationId: string, userId: string) => void;
   onCreateProject: (project: Partial<Project>) => void;
+  onUpdateProject?: (projectId: string, data: Partial<Project>) => void;
+  onDeleteProject?: (projectId: string) => void;
   messages: Message[];
   onSendMessage: (projectId: string, content: string, file?: File) => void;
   onMarkProjectAsRead?: (projectId: string) => void; // New prop
-  users?: User[]; 
+  users?: User[];
   onCompleteProject?: (projectId: string, review: { score: number, comment: string }) => void;
   initialTab?: 'FIND' | 'MANAGE';
   initialProjectId?: string;
@@ -86,13 +88,15 @@ const MatchRing = ({ percentage }: { percentage: number }) => {
     );
 };
 
-export const Projects: React.FC<ProjectsProps> = ({ 
-  currentUser, 
-  projects, 
+export const Projects: React.FC<ProjectsProps> = ({
+  currentUser,
+  projects,
   applications,
   onApply,
   onHire,
   onCreateProject,
+  onUpdateProject,
+  onDeleteProject,
   messages,
   onSendMessage,
   onMarkProjectAsRead,
@@ -131,6 +135,14 @@ export const Projects: React.FC<ProjectsProps> = ({
     category: ProjectCategory.DX_CONSULTING,
     requiredSkills: []
   });
+
+  // Edit Project State
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+  // Delete Confirmation State
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
 
   // Completion/Review State
   const [showCompleteModal, setShowCompleteModal] = useState(false);
@@ -312,6 +324,38 @@ export const Projects: React.FC<ProjectsProps> = ({
     }
   };
 
+  const toggleEditSkill = (skill: string) => {
+    if (!editingProject) return;
+    const currentSkills = editingProject.requiredSkills || [];
+    if (currentSkills.includes(skill)) {
+        setEditingProject({ ...editingProject, requiredSkills: currentSkills.filter(s => s !== skill) });
+    } else {
+        setEditingProject({ ...editingProject, requiredSkills: [...currentSkills, skill] });
+    }
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProject || !onUpdateProject) return;
+    onUpdateProject(editingProject.id, {
+      title: editingProject.title,
+      description: editingProject.description,
+      budget: editingProject.budget,
+      category: editingProject.category,
+      requiredSkills: editingProject.requiredSkills,
+      status: editingProject.status
+    });
+    setIsEditing(false);
+    setEditingProject(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!deletingProjectId || !onDeleteProject) return;
+    onDeleteProject(deletingProjectId);
+    setShowDeleteConfirm(false);
+    setDeletingProjectId(null);
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
@@ -362,11 +406,39 @@ export const Projects: React.FC<ProjectsProps> = ({
                         <span className={`text-xs font-bold px-2 py-1 rounded ${isAdmin ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-pantheon-navy'}`}>{categoryMap[project.category]}</span>
                         <span className={`text-xs font-bold px-2 py-1 rounded ${
                         project.status === ProjectStatus.RECRUITING ? 'bg-green-100 text-green-700' :
-                        project.status === ProjectStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-700' : 
+                        project.status === ProjectStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-700' :
                         project.status === ProjectStatus.COMPLETED ? 'bg-purple-100 text-purple-700' : theme.badgeNeutral
                         }`}>{statusMap[project.status]}</span>
                 </div>
-                
+
+                {/* Admin Edit/Delete Buttons */}
+                {isAdmin && (
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingProject(project);
+                        setIsEditing(true);
+                      }}
+                      className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition-colors"
+                      title="編集"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingProjectId(project.id);
+                        setShowDeleteConfirm(true);
+                      }}
+                      className="p-1.5 rounded-lg bg-slate-700 hover:bg-red-600 text-slate-300 hover:text-white transition-colors"
+                      title="削除"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+
                 {/* Match Ring (Only for Partner finding jobs) */}
                 {!isAdmin && partnerTab === 'FIND' && matchPercentage > 0 && (
                    <div className="group/ring relative">
@@ -1122,6 +1194,138 @@ export const Projects: React.FC<ProjectsProps> = ({
                  <div className="flex justify-end gap-3 pt-4 border-t border-slate-700"><button type="button" onClick={() => setIsCreating(false)} className="px-6 py-2 rounded-lg text-slate-400 hover:bg-slate-700 font-bold">キャンセル</button><button type="submit" className="px-8 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg">公開する</button></div>
               </form>
            </div>
+        </div>
+      )}
+
+      {/* Edit Project Modal (Admin Only) */}
+      {isEditing && editingProject && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+           <div className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-2xl text-slate-200 border border-slate-700 max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-slate-700 flex justify-between items-center sticky top-0 bg-slate-800 z-10">
+                <h3 className="text-xl font-bold text-white flex items-center">
+                  <Edit2 size={20} className="mr-2 text-blue-400" /> 案件を編集
+                </h3>
+                <button onClick={() => { setIsEditing(false); setEditingProject(null); }} className="text-slate-400 hover:text-white"><X size={24} /></button>
+              </div>
+              <form onSubmit={handleEditSubmit} className="p-6 space-y-6">
+                 <div>
+                   <label className="block text-sm font-bold text-slate-400 mb-2">案件タイトル</label>
+                   <input
+                     type="text"
+                     required
+                     value={editingProject.title}
+                     onChange={e => setEditingProject({...editingProject, title: e.target.value})}
+                     className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                   />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div>
+                     <label className="block text-sm font-bold text-slate-400 mb-2">カテゴリー</label>
+                     <select
+                       value={editingProject.category}
+                       onChange={e => setEditingProject({...editingProject, category: e.target.value as ProjectCategory})}
+                       className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                     >
+                       {Object.keys(ProjectCategory).map(cat => <option key={cat} value={cat}>{categoryMap[cat]}</option>)}
+                     </select>
+                   </div>
+                   <div>
+                     <label className="block text-sm font-bold text-slate-400 mb-2">予算 (円)</label>
+                     <input
+                       type="number"
+                       required
+                       min="1"
+                       value={editingProject.budget || ''}
+                       onChange={e => setEditingProject({...editingProject, budget: Number(e.target.value)})}
+                       className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                     />
+                   </div>
+                 </div>
+                 <div>
+                   <label className="block text-sm font-bold text-slate-400 mb-2">ステータス</label>
+                   <select
+                     value={editingProject.status}
+                     onChange={e => setEditingProject({...editingProject, status: e.target.value as ProjectStatus})}
+                     className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                   >
+                     {Object.keys(ProjectStatus).map(status => <option key={status} value={status}>{statusMap[status]}</option>)}
+                   </select>
+                 </div>
+                 <div>
+                   <label className="block text-sm font-bold text-slate-400 mb-2">案件詳細</label>
+                   <textarea
+                     required
+                     value={editingProject.description}
+                     onChange={e => setEditingProject({...editingProject, description: e.target.value})}
+                     className="w-full h-32 bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                   />
+                 </div>
+                 <div>
+                   <label className="block text-sm font-bold text-slate-400 mb-2">必須スキル (タグ選択)</label>
+                   <div className="flex flex-wrap gap-2 bg-slate-900 p-4 rounded-lg border border-slate-600">
+                     {EXPERIENCE_TAGS.map(tag => (
+                       <button
+                         key={tag}
+                         type="button"
+                         onClick={() => toggleEditSkill(tag)}
+                         className={`px-3 py-1.5 rounded text-sm transition-colors ${editingProject.requiredSkills?.includes(tag) ? 'bg-blue-600 text-white shadow' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`}
+                       >
+                         {tag}
+                       </button>
+                     ))}
+                   </div>
+                 </div>
+                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+                   <button type="button" onClick={() => { setIsEditing(false); setEditingProject(null); }} className="px-6 py-2 rounded-lg text-slate-400 hover:bg-slate-700 font-bold">キャンセル</button>
+                   <button type="submit" className="px-8 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg flex items-center">
+                     <CheckCircle size={18} className="mr-2" /> 保存する
+                   </button>
+                 </div>
+              </form>
+           </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && deletingProjectId && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-md border border-slate-700 overflow-hidden">
+            <div className="p-6 border-b border-slate-700">
+              <h3 className="text-xl font-bold text-white flex items-center">
+                <AlertTriangle className="mr-2 text-red-500" /> 削除の確認
+              </h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-slate-300">
+                この案件を削除してもよろしいですか？
+              </p>
+              <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50">
+                <p className="font-bold text-white">
+                  {projects.find(p => p.id === deletingProjectId)?.title}
+                </p>
+              </div>
+              <div className="flex items-start bg-red-900/20 p-3 rounded-lg border border-red-900/50">
+                <AlertTriangle className="text-red-400 mr-2 shrink-0 mt-0.5" size={16} />
+                <p className="text-xs text-red-300 leading-relaxed">
+                  この操作は取り消せません。関連する応募やメッセージも削除されます。
+                </p>
+              </div>
+            </div>
+            <div className="p-4 bg-slate-900 border-t border-slate-700 flex justify-end space-x-3">
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeletingProjectId(null); }}
+                className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-6 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold shadow-lg transition-all flex items-center"
+              >
+                <Trash2 size={18} className="mr-2" /> 削除する
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

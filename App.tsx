@@ -14,7 +14,7 @@ import { AdminPartners } from './components/AdminPartners';
 import { DirectMessages } from './components/DirectMessages';
 import { Profile } from './components/Profile';
 import { ToastProps } from './components/Toast';
-import { createDocument, updateDocument, subscribeToCollection, subscribeToNotifications } from './services';
+import { createDocument, updateDocument, deleteDocument, subscribeToCollection, subscribeToNotifications } from './services';
 import { auth, db, storage } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -480,9 +480,30 @@ const App: React.FC = () => {
           status: ProjectStatus.RECRUITING,
           createdAt: new Date().toISOString().split('T')[0]
       };
-      
+
       await createDocument('projects', newProject);
       showToast(NotificationType.SUCCESS, '案件作成完了', `「${newProject.title}」を公開しました。`);
+  };
+
+  const handleUpdateProject = async (projectId: string, data: Partial<Project>) => {
+      try {
+          await updateDocument('projects', projectId, data);
+          showToast(NotificationType.SUCCESS, '案件更新完了', '案件情報を更新しました。');
+      } catch (error) {
+          console.error('Error updating project:', error);
+          showToast(NotificationType.ERROR, 'エラー', '案件の更新に失敗しました。');
+      }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+      try {
+          const projectToDelete = projects.find(p => p.id === projectId);
+          await deleteDocument('projects', projectId);
+          showToast(NotificationType.SUCCESS, '案件削除完了', `「${projectToDelete?.title || '案件'}」を削除しました。`);
+      } catch (error) {
+          console.error('Error deleting project:', error);
+          showToast(NotificationType.ERROR, 'エラー', '案件の削除に失敗しました。');
+      }
   };
 
   const handleHireApplicant = async (projectId: string, applicationId: string, userId: string) => {
@@ -749,7 +770,7 @@ const App: React.FC = () => {
                />;
       case 'PROJECTS_LIST':
       case 'PROJECT_DETAIL':
-        return <Projects 
+        return <Projects
                   currentUser={currentUser}
                   projects={projects}
                   setProjects={setProjects}
@@ -757,6 +778,8 @@ const App: React.FC = () => {
                   onApply={handleApply}
                   onHire={handleHireApplicant}
                   onCreateProject={handleCreateProject}
+                  onUpdateProject={handleUpdateProject}
+                  onDeleteProject={handleDeleteProject}
                   messages={messages}
                   onSendMessage={handleSendMessage}
                   onMarkProjectAsRead={handleMarkProjectAsRead}
